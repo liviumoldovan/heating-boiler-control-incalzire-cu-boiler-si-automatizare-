@@ -1,118 +1,90 @@
 type: vertical-stack
 cards:
-  # ===============================================
-  # 1. Starea Automatizarilor (Titlu si Stari Binare)
-  # ===============================================
-  - type: entities
-    title: Status Automatizari & Mod Manual
-    show_header_toggle: false
-    entities:
-      # Indicator Vizual Automatizare Ambientala
-      - entity: binary_sensor.ssr_ambient_automatizare_activa
-        name: Control Ambient Auto
-        icon: mdi:thermostat
-        state_color: true
-      # Indicator Vizual Automatizare Zi
-      - entity: binary_sensor.ssr_zi_automatizare_activa
-        name: Control Zi (10-16) Auto
-        icon: mdi:white-balance-sunny
-        state_color: true
-
-  # -----------------------------------------------
-  
-  # ===============================================
-  # 2. Butoane de Control (SSR-uri)
-  # ===============================================
   - type: horizontal-stack
     cards:
-      # Buton SSR Ambient
-      - type: button
-        tap_action:
-          action: toggle
-        entity: switch.ssr_ambient
-        name: SSR Ambient
-        icon: mdi:radiator
-        # Culoare: Verde (ON) / Rosu (OFF)
-        show_state: true
-        show_name: true
-        state_color: true 
-
-      # Buton SSR Zi (10-16)
-      - type: button
-        tap_action:
-          action: toggle
-        entity: switch.ssr_zi_10_16
-        name: SSR Zi (Solar)
-        icon: mdi:solar-panel-large
-        # Culoare: Verde (ON) / Rosu (OFF)
-        show_state: true
-        show_name: true
-        state_color: true
-
-  # -----------------------------------------------
-
-  # ===============================================
-  # 3. Indicatori de Temperatura (Gauge)
-  # ===============================================
-  - type: entities
-    title: Controale Manuale Temporare (10 min)
-    entities:
-      # Comutator Manual Ambient (Porneste SSR-ul fortat pe 10 min)
-      - entity: switch.ssr_ambient_manual
-        name: Fortare Ambient (10 min)
-        icon: mdi:hand-front-right
-        state_color: true
-      # Comutator Manual Zi (Porneste SSR-ul fortat pe 10 min)
-      - entity: switch.ssr_zi_manual
-        name: Fortare Zi (10 min)
-        icon: mdi:hand-front-right
-        state_color: true
-
-  # -----------------------------------------------
-  
-  # ===============================================
-  # 4. Gauge-uri de Temperatura (Cu Zone de Culoare)
-  # ===============================================
-  - type: horizontal-stack
-    cards:
-      # Gauge 1: Temperatura Ambientala (Ideal 20-22)
       - type: gauge
-        entity: sensor.temperatura_ambientala
+        entity: sensor.incalzire_temperatura_ambientala
         unit: °C
         name: Ambient
         min: 15
         max: 35
-        # 15-20: Rosu (Prea Rece) / 20-22: Verde (Ideal) / 22-35: Galben (Prea Cald)
         severity:
           green: 20
           yellow: 22
           red: 15
         needle: true
-
-      # Gauge 2: Temperatura Retur Apa Calda (Ideal < 60)
       - type: gauge
-        entity: sensor.temperatura_retur_apa_calda
+        entity: sensor.incalzire_temperatura_retur_apa_calda
         unit: °C
         name: Retur ACM
         min: 10
         max: 80
-        # 10-60: Verde (Sub prag) / 60-70: Galben / 70-80: Rosu (Peste limita)
         severity:
           green: 10
           yellow: 60
           red: 70
         needle: true
-      
-      # Gauge 3: Temperatura Tur Apa Calda (Ideal < 75)
       - type: gauge
-        entity: sensor.temperatura_tur_apa_calda
+        entity: sensor.incalzire_temperatura_tur_apa_calda
         unit: °C
         name: Tur ACM
         min: 10
         max: 100
-        # 10-70: Verde / 70-75: Galben (Avertisment) / 75-100: Rosu (Stop Automatizare)
         severity:
           green: 10
           yellow: 70
           red: 75
         needle: true
+  - type: button
+    tap_action:
+      action: toggle
+    entity: switch.incalzire_oprire_de_urgenta
+    name: URGENTA
+    icon: mdi:alert-octagon
+    show_state: true
+    show_name: true
+    state_color: true
+    color: red
+  - type: horizontal-stack
+    cards:
+      - type: button
+        tap_action:
+          action: toggle
+        entity: switch.incalzire_ssr_ambient
+        name: SSR Ambient
+        icon: mdi:radiator
+        show_state: true
+        show_name: true
+        state_color: true
+      - type: button
+        tap_action:
+          action: toggle
+        entity: switch.incalzire_ssr_zi_10_16
+        name: SSR Zi (Solar)
+        icon: mdi:solar-panel-large
+        show_state: true
+        show_name: true
+        state_color: true
+  - type: entities
+    title: Controale Manuale Temporare (10 min)
+    entities:
+      - entity: switch.incalzire_ssr_ambient_manual
+        name: Fortare Ambient (10 min)
+        icon: mdi:hand-front-right
+        state_color: true
+      - entity: switch.incalzire_ssr_zi_manual
+        name: Fortare Zi (10 min)
+        icon: mdi:hand-front-right
+        state_color: true
+  - type: entities
+    title: Status Automatizari & Mod Manual
+    show_header_toggle: false
+    entities:
+      - entity: binary_sensor.incalzire_ssr_ambient_automatizare_activa
+        name: Control Ambient Auto
+        icon: mdi:thermostat
+        state_color: true
+      - entity: binary_sensor.incalzire_ssr_zi_automatizare_activa
+        name: Control Zi (10-16) Auto
+        icon: mdi:white-balance-sunny
+        state_color: true
