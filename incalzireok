@@ -12,15 +12,15 @@ logger:
 
 api:
   encryption:
-    key: "S7IwMb2gkgKkxd7tV3dfg30pnt+cvhi17Ky31rY0jY0="
+    key: "your key"
 
 ota:
   - platform: esphome
-    password: "97086a18d97652f58b530f3fa0d8ae62"
+    password: "your pass"
 
 wifi:
-  ssid: "liviu"
-  password: "david111"
+  ssid: "your wifi"
+  password: "your pass"
   manual_ip:
     static_ip: 192.168.1.187
     gateway: 192.168.1.1
@@ -171,4 +171,5 @@ interval:
                   id(ssr_solar).turn_on();
                 } else {
                   id(ssr_solar).turn_off();
+
                 }
