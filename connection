@@ -1,0 +1,14 @@
+The ESP32 device uses the following pins (GPIOs):
+
+GPIO4: Used for the One-Wire bus to which the three temperature sensors (Dallas DS18B20) are connected.
+
+GPIO25: Used to control the SSR Ambient (Solid State Relay for ambient heating/pump).
+
+GPIO26: Used to control the SSR Zi (10-16) (Solid State Relay for daytime boiler heating).
+
+VIN 5V power for SSR
+
+Having placed a 4.7k resistor between the data pin (GPIO4) and the 3.3v supply ensures reliable One-Wire communication for reading your temperatures.
+
+GND
+
