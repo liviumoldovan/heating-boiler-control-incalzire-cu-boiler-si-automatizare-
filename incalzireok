@@ -1,0 +1,174 @@
+esphome:
+  name: incalzire
+  friendly_name: incalzire
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: "S7IwMb2gkgKkxd7tV3dfg30pnt+cvhi17Ky31rY0jY0="
+
+ota:
+  - platform: esphome
+    password: "97086a18d97652f58b530f3fa0d8ae62"
+
+wifi:
+  ssid: "liviu"
+  password: "david111"
+  manual_ip:
+    static_ip: 192.168.1.187
+    gateway: 192.168.1.1
+    subnet: 255.255.255.0
+    dns1: 8.8.8.8
+  ap:
+    ssid: "Incalzire_Fallback"
+    password: "12345678"
+
+captive_portal:
+
+web_server:
+  port: 80
+
+one_wire:
+  - platform: gpio
+    id: bus_1
+    pin: GPIO4
+
+sensor:
+  - platform: dallas_temp
+    one_wire_id: bus_1
+    address: 0x0500000051c74d28
+    name: "Temperatura Tur Apa Calda"
+    id: temp_tur
+    unit_of_measurement: "°C"
+    update_interval: 3s
+
+  - platform: dallas_temp
+    one_wire_id: bus_1
+    address: 0x3400000050661f28
+    name: "Temperatura Retur Apa Calda"
+    id: temp_retur
+    unit_of_measurement: "°C"
+    update_interval: 3s
+
+  - platform: dallas_temp
+    one_wire_id: bus_1
+    address: 0x7600000051bc4f28
+    name: "Temperatura Ambientala"
+    id: temp_ambient
+    unit_of_measurement: "°C"
+    update_interval: 3s
+
+switch:
+  - platform: gpio
+    pin: GPIO25
+    id: ssr_ambient
+    name: "SSR Ambient"
+
+  - platform: gpio
+    pin: GPIO26
+    id: ssr_solar
+    name: "SSR Zi (10-16)"
+
+  - platform: template
+    name: "SSR Ambient Manual"
+    id: ssr_ambient_manual
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - switch.turn_on: ssr_ambient
+      - delay: 10min
+      - switch.turn_off: ssr_ambient_manual
+    turn_off_action:
+      - logger.log: "SSR Ambient Manual OFF -> revine automatizarea"
+
+  - platform: template
+    name: "SSR Zi Manual"
+    id: ssr_solar_manual
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - switch.turn_on: ssr_solar
+      - delay: 10min
+      - switch.turn_off: ssr_solar_manual
+    turn_off_action:
+      - logger.log: "SSR Zi Manual OFF -> revine automatizarea"
+
+binary_sensor:
+  - platform: template
+    name: "SSR Ambient Automatizare Activa"
+    id: ssr_ambient_auto
+    lambda: |-
+      if (!id(ssr_ambient_manual).state) {
+        return true;
+      } else {
+        return false;
+      }
+
+  - platform: template
+    name: "SSR Zi Automatizare Activa"
+    id: ssr_solar_auto
+    lambda: |-
+      if (!id(ssr_solar_manual).state) {
+        return true;
+      } else {
+        return false;
+      }
+
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Bucharest
+
+interval:
+  - interval: 3s
+    then:
+      - if:
+          condition:
+            not:
+              - switch.is_on: ssr_ambient_manual
+          then:
+            - lambda: |-
+                // SSR Ambient: PORNIT daca temp_ambient < 22 C AND temp_retur < 60 C
+                bool is_ambient_ok = id(temp_ambient).state < 22.0;
+                bool is_retur_ok = id(temp_retur).state < 60.0;
+                
+                if (is_ambient_ok && is_retur_ok) {
+                  id(ssr_ambient).turn_on();
+                } else {
+                  id(ssr_ambient).turn_off();
+                }
+
+      - if:
+          condition:
+            not:
+              - switch.is_on: ssr_solar_manual
+          then:
+            - lambda: |-
+                if (id(sntp_time).now().timestamp == 0) {
+                  ESP_LOGW("automatizare", "Timpul SNTP nu este valid (timestamp 0). O sarim.");
+                  return;
+                }
+                
+                int h = id(sntp_time).now().hour;
+                bool is_day_time = h >= 10 && h < 16;
+                
+                // Conditie de oprire pe Tur: oprire daca temperatura Tur >= 75 C
+                bool is_tur_safe = id(temp_tur).state < 75.0; 
+                
+                // SSR Zi este PORNIT doar daca e in intervalul orar SI daca temperatura Tur este sigura
+                bool should_be_on = is_day_time && is_tur_safe;
+
+                ESP_LOGD("automatizare", "Ora citita: %d, Is Day: %s, Is Tur Safe: %s", h, is_day_time ? "TRUE" : "FALSE", is_tur_safe ? "TRUE" : "FALSE");
+                
+                if (should_be_on) {
+                  id(ssr_solar).turn_on();
+                } else {
+                  id(ssr_solar).turn_off();
+                }
